@@ -1,21 +1,24 @@
 const breakpoints = [5]
-const filename = "juno.jl"
+const filename = "/home/kim/Documents/Experimental/juno.jl"
 
 module Exec end
 
-const lines = open(filename) do file; [eachline(file)...] end
-lineno = 1
-while true
-    global lineno
+function nextbreakpoint()
     for line in @view lines[lineno:end]
         if (lineno in breakpoints)
             filter!(b -> b ≠ lineno, breakpoints)
             break
         else
             Exec.eval(Meta.parse(line))
-            lineno += 1
+            global lineno += 1
         end
     end
+end
+input = ""
+const lines = open(filename) do file; [eachline(file)...] end
+lineno = 1
+while true
+    (lineno == 1 || input == "n") && nextbreakpoint()
     lineno < length(lines) || break
-    readline()
+    global input = readline()
 end
